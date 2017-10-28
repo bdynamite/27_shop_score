@@ -1,6 +1,17 @@
 # Shop Score Page
 
-{TODO. There will be project description}
+[This app](https://bd-shop-score.herokuapp.com/) shows you unconfirmed orders of an imaginary shop and other statistic.
+
+# How to local use
+
+```#!bash
+
+virtualenv -p python3 env
+source env/bin/activate
+pip install -r requirements.txt
+python server.py
+```
+
 
 # Project Goals
 
