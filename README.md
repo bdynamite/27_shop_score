@@ -29,4 +29,3 @@ and open <http://127.0.0.1:5000/>
 # Project Goals
 
 The code is written for educational purposes. Training course for web-developers - [DEVMAN.org](https://devman.org)
-score:Rysherat2@shopscore.devman.org:5432/shop
