@@ -1,8 +1,11 @@
 import datetime
 import bisect
+import pytz
+import argparse
 
 from flask import render_template
-from app import app, Order
+from app import app
+from models import Order
 
 
 def get_delay(time):
@@ -11,24 +14,23 @@ def get_delay(time):
     return styles[bisect.bisect(key_moments, time)]
 
 
-def get_unconfirmed_orders():
-    return Order.query.filter(Order.confirmed.is_(None)).all()
-
-
 def get_today_orders(today):
-    return [order for order in Order.query.filter(Order.confirmed.isnot(None))
-            if order.confirmed.day == today.day and order.confirmed.month == today.month]
+    orders = Order.query.filter(today.combine(today, today.min.time()) <= Order.created)
+    orders = orders.filter(Order.created <= today)
+    return orders
 
 
 def get_content():
-    now = datetime.datetime.now()
-    unconfirmed_orders = [(order, get_delay(now - order.created), order.created.strftime('%X')) for order in get_unconfirmed_orders()]
-    today_orders = get_today_orders(now)
+    time_zone = pytz.timezone('Europe/Moscow')
+    current_date = datetime.datetime.now(tz=time_zone)
+    today_orders = get_today_orders(current_date)
+    unconfirmed_orders = today_orders.filter(Order.confirmed.is_(None)).all()
     content = {
-        'unconfirmed': unconfirmed_orders,
+        'unconfirmed': [(order, get_delay(current_date - order.created.replace(tzinfo=time_zone)),
+                         order.created.strftime('%X')) for order in unconfirmed_orders],
         'unconfirmed_count': len(unconfirmed_orders),
-        'today_count': len(today_orders),
-        'time': now.strftime('%X')
+        'today_count': len(today_orders.all()),
+        'time': current_date.strftime('%X')
     }
     return content
 
@@ -39,5 +41,17 @@ def score():
     return render_template('score.html', **content)
 
 
+def create_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--connection', type=str)
+    return parser.parse_args()
+
+
+def set_db_uri(connection):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://{}'.format(connection)
+
+
 if __name__ == "__main__":
+    args = create_parser()
+    set_db_uri(args.connection)
     app.run()
