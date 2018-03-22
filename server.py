@@ -15,7 +15,7 @@ def get_delay(time):
 
 
 def get_today_orders(today):
-    orders = Order.query.filter(today.combine(today, today.min.time()) <= Order.created)
+    orders = Order.query.filter(Order.created >= today.combine(today, today.min.time()))
     orders = orders.filter(Order.created <= today)
     return orders
 
@@ -39,6 +39,12 @@ def get_content():
 def score():
     content = get_content()
     return render_template('score.html', **content)
+
+
+@app.route('/robots.txt')
+def robots():
+    with open('robots.txt', mode='r') as robots_file:
+        return robots_file.read()
 
 
 def create_parser():
