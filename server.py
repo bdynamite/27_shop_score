@@ -15,8 +15,7 @@ def get_delay(time):
 
 
 def get_today_orders(today):
-    orders = Order.query.filter(Order.created >= today.combine(today, today.min.time()))
-    orders = orders.filter(Order.created <= today)
+    orders = Order.query.filter(Order.created.between(today.combine(today, today.min.time(), today)))
     return orders
 
 
